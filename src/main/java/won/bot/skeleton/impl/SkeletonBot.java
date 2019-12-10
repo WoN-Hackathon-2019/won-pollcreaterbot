@@ -2,6 +2,9 @@ package won.bot.skeleton.impl;
 
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +18,7 @@ import won.bot.framework.eventbot.event.Event;
 import won.bot.framework.eventbot.event.impl.command.connect.ConnectCommandEvent;
 import won.bot.framework.eventbot.event.impl.command.connect.ConnectCommandResultEvent;
 import won.bot.framework.eventbot.event.impl.command.connect.ConnectCommandSuccessEvent;
+import won.bot.framework.eventbot.event.impl.command.connectionmessage.ConnectionMessageCommandEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.CloseFromOtherAtomEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.ConnectFromOtherAtomEvent;
 import won.bot.framework.eventbot.filter.impl.AtomUriInNamedListFilter;
@@ -27,14 +31,21 @@ import won.bot.framework.extensions.matcher.MatcherExtension;
 import won.bot.framework.extensions.matcher.MatcherExtensionAtomCreatedEvent;
 import won.bot.framework.extensions.serviceatom.ServiceAtomBehaviour;
 import won.bot.framework.extensions.serviceatom.ServiceAtomExtension;
+import won.bot.framework.extensions.textmessagecommand.TextMessageCommandBehaviour;
+import won.bot.framework.extensions.textmessagecommand.TextMessageCommandExtension;
+import won.bot.framework.extensions.textmessagecommand.command.EqualsTextMessageCommand;
+import won.bot.framework.extensions.textmessagecommand.command.PatternMatcherTextMessageCommand;
+import won.bot.framework.extensions.textmessagecommand.command.TextMessageCommand;
 import won.bot.skeleton.action.MatcherExtensionAtomCreatedAction;
 import won.bot.skeleton.context.SkeletonBotContextWrapper;
+import won.protocol.model.Connection;
 
-public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAtomExtension {
+public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAtomExtension, TextMessageCommandExtension {
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private int registrationMatcherRetryInterval;
     private MatcherBehaviour matcherBehaviour;
     private ServiceAtomBehaviour serviceAtomBehaviour;
+    private TextMessageCommandBehaviour textMessageCommandBehaviour;
 
     // bean setter, used by spring
     public void setRegistrationMatcherRetryInterval(final int registrationMatcherRetryInterval) {
@@ -49,6 +60,11 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
     @Override
     public MatcherBehaviour getMatcherBehaviour() {
         return matcherBehaviour;
+    }
+
+    @Override
+    public TextMessageCommandBehaviour getTextMessageCommandBehaviour() {
+        return textMessageCommandBehaviour;
     }
 
     @Override
@@ -85,7 +101,7 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                 EventListenerContext ctx = getEventListenerContext();
                 ConnectFromOtherAtomEvent connectFromOtherAtomEvent = (ConnectFromOtherAtomEvent) event;
                 try {
-                    String message = "Hello i am the BotSkeletor i will send you a message everytime an atom is created...";
+                    String message = "Hallo, ich bin der PollCreatorBot! Erstelle jetzt eine neue Umfrage!\nTitel der Umfrage:";
                     final ConnectCommandEvent connectCommandEvent = new ConnectCommandEvent(
                                     connectFromOtherAtomEvent.getRecipientSocket(),
                                     connectFromOtherAtomEvent.getSenderSocket(), message);
@@ -131,5 +147,15 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                 botContextWrapper.removeConnectedSocket(senderSocketUri, targetSocketUri);
             }
         });
+
+        ArrayList<TextMessageCommand> botCommands = new ArrayList<>();
+        botCommands.add(new EqualsTextMessageCommand("modify", "modify the atom's description", "modify",
+                (Connection connection) -> {
+                    bus.publish(new ConnectionMessageCommandEvent(connection, "Ok, I'll change my atom description."));
+                }));
+        // activate TextMessageCommandBehaviour
+        textMessageCommandBehaviour = new TextMessageCommandBehaviour(ctx,
+                botCommands.toArray(new TextMessageCommand[0]));
+        textMessageCommandBehaviour.activate();
     }
 }
