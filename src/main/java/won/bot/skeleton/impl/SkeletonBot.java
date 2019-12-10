@@ -147,22 +147,31 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
         ArrayList<TextMessageCommand> botCommands = new ArrayList<>();
         botCommands.add(new EqualsTextMessageCommand("new poll", "New poll will be created", "new poll",
                 (Connection connection) -> {
+                    if(poll.getTitle()!=null){
+                        bus.publish(new ConnectionMessageCommandEvent(connection, "Previous poll was canceled!"));
+                    }
                     bus.publish(new ConnectionMessageCommandEvent(connection, "Please enter your question"));
                     flag = true;
                     poll = new Poll();
                 }));
         botCommands.add(new EqualsTextMessageCommand("end", "Poll has been created", "end",
                 (Connection connection) -> {
-                    bus.publish(new ConnectionMessageCommandEvent(connection, poll.toString()));
-                    flag = false;
-                    try {
-                        pollId = StrawpollAPI.create(poll.getTitle(), poll.getAnswers());
-                        logger.info(""+pollId);
-                    } catch (Exception e) {
-                        logger.error(e.getMessage());
+                    if(poll.getTitle() == null) bus.publish(new ConnectionMessageCommandEvent(connection, "You have to create a new poll before you can publish"));
+                    else if(poll.getAnswers().size() < 2) bus.publish(new ConnectionMessageCommandEvent(connection, "You'r poll has to have at least two answers"));
+                    else{
+                        bus.publish(new ConnectionMessageCommandEvent(connection, poll.toString()));
+                        flag = false;
+                        try {
+                            pollId = StrawpollAPI.create(poll.getTitle(), poll.getAnswers());
+                            logger.info(""+pollId);
+                        } catch (Exception e) {
+                            logger.error(e.getMessage());
+                            bus.publish(new ConnectionMessageCommandEvent(connection, "An error occurred while creating the poll\nPleas try again later"));
+                        }
+                        poll = new Poll();
+                        bus.publish(new ConnectionMessageCommandEvent(connection, "Poll ID: " + pollId));
+                        bus.publish(new ConnectionMessageCommandEvent(connection, "If you wanna create a new poll just enter \"new poll\""));
                     }
-                    poll = new Poll();
-                    bus.publish(new ConnectionMessageCommandEvent(connection, "Poll ID: " + pollId));
                 }));
         // activate TextMessageCommandBehaviour
         textMessageCommandBehaviour = new TextMessageCommandBehaviour(ctx,
