@@ -40,4 +40,20 @@ public class SPPoll {
                 ", options=" + options +
                 '}';
     }
+
+    public long getId() {
+        return id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public boolean isMulti() {
+        return multi;
+    }
+
+    public List<SPPollOption> getOptions() {
+        return options;
+    }
 }
