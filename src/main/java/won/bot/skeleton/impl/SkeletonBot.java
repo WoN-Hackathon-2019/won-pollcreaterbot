@@ -21,6 +21,7 @@ import won.bot.framework.eventbot.event.impl.command.connect.ConnectCommandSucce
 import won.bot.framework.eventbot.event.impl.command.connectionmessage.ConnectionMessageCommandEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.CloseFromOtherAtomEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.ConnectFromOtherAtomEvent;
+import won.bot.framework.eventbot.event.impl.wonmessage.MessageFromOtherAtomEvent;
 import won.bot.framework.eventbot.filter.impl.AtomUriInNamedListFilter;
 import won.bot.framework.eventbot.filter.impl.CommandResultFilter;
 import won.bot.framework.eventbot.filter.impl.NotFilter;
@@ -39,6 +40,7 @@ import won.bot.framework.extensions.textmessagecommand.command.TextMessageComman
 import won.bot.skeleton.action.MatcherExtensionAtomCreatedAction;
 import won.bot.skeleton.context.SkeletonBotContextWrapper;
 import won.protocol.model.Connection;
+import won.protocol.util.WonRdfUtils;
 
 public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAtomExtension, TextMessageCommandExtension {
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -147,11 +149,20 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                 botContextWrapper.removeConnectedSocket(senderSocketUri, targetSocketUri);
             }
         });
+        bus.subscribe(MessageFromOtherAtomEvent.class, noInternalServiceAtomEventFilter, new BaseEventBotAction(ctx) {
+            @Override
+            protected void doRun(Event event, EventListener eventListener) throws Exception {
+                MessageFromOtherAtomEvent msgEvent = (MessageFromOtherAtomEvent) event;
+                String text = WonRdfUtils.MessageUtils.getTextMessage(msgEvent.getWonMessage());
+                bus.publish(new ConnectionMessageCommandEvent(msgEvent.getCon(), text));
+            }
+        });
 
         ArrayList<TextMessageCommand> botCommands = new ArrayList<>();
         botCommands.add(new EqualsTextMessageCommand("1", "neue Umfrage erstellen", "1",
                 (Connection connection) -> {
                     bus.publish(new ConnectionMessageCommandEvent(connection, "Ok, neue Umfrage wird erstellt"));
+                    bus.publish(new ConnectionMessageCommandEvent(connection, "Titel deiner Umfrage:"));
                 }));
         // activate TextMessageCommandBehaviour
         textMessageCommandBehaviour = new TextMessageCommandBehaviour(ctx,
