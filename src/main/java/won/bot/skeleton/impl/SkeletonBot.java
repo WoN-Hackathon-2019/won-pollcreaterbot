@@ -101,7 +101,7 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                 EventListenerContext ctx = getEventListenerContext();
                 ConnectFromOtherAtomEvent connectFromOtherAtomEvent = (ConnectFromOtherAtomEvent) event;
                 try {
-                    String message = "Hallo, ich bin der PollCreatorBot! Erstelle jetzt eine neue Umfrage!\nTitel der Umfrage:";
+                    String message = "Hallo, ich bin der PollCreatorBot!\nWas möchtest du machen?\n1) neue Umfrage erstellen\nAntworte mit der entsprechenden Nummer!";
                     final ConnectCommandEvent connectCommandEvent = new ConnectCommandEvent(
                                     connectFromOtherAtomEvent.getRecipientSocket(),
                                     connectFromOtherAtomEvent.getSenderSocket(), message);
@@ -149,9 +149,9 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
         });
 
         ArrayList<TextMessageCommand> botCommands = new ArrayList<>();
-        botCommands.add(new EqualsTextMessageCommand("modify", "modify the atom's description", "modify",
+        botCommands.add(new EqualsTextMessageCommand("1", "neue Umfrage erstellen", "1",
                 (Connection connection) -> {
-                    bus.publish(new ConnectionMessageCommandEvent(connection, "Ok, I'll change my atom description."));
+                    bus.publish(new ConnectionMessageCommandEvent(connection, "Ok, neue Umfrage wird erstellt"));
                 }));
         // activate TextMessageCommandBehaviour
         textMessageCommandBehaviour = new TextMessageCommandBehaviour(ctx,
