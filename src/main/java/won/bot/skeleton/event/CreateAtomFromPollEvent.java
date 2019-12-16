@@ -1,17 +1,16 @@
 package won.bot.skeleton.event;
 
 import won.bot.framework.eventbot.event.BaseEvent;
-import won.bot.skeleton.strawpoll.api.models.SPPoll;
-
+import won.bot.skeleton.model.Poll;
 
 public class CreateAtomFromPollEvent extends BaseEvent {
-    private final SPPoll poll;
+    private final Poll poll;
 
-    public CreateAtomFromPollEvent(SPPoll poll) {
+    public CreateAtomFromPollEvent(Poll poll) {
         this.poll = poll;
     }
 
-    public SPPoll getPoll() {
+    public Poll getPoll() {
         return poll;
     }
 }

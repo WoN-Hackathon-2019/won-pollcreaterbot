@@ -6,6 +6,7 @@ import java.util.List;
 public class Poll {
     private String title;
     private List<String> answers;
+    private long id;
 
     public Poll(){
         answers = new ArrayList<>();
@@ -29,6 +30,14 @@ public class Poll {
 
     public void addAnswer(String ans){
         answers.add(ans);
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 
     @Override
