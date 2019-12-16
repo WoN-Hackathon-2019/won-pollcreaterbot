@@ -188,6 +188,7 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                         //publish command
                         CreateAtomCommandEvent createCommand = new CreateAtomCommandEvent(atomWrapper.getDataset(), "atom_uris");
                         ctx.getEventBus().publish(createCommand);
+                        poll = new Poll();
                     }
 
                 }));
