@@ -205,11 +205,11 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
             protected void doRun(Event event, EventListener eventListener) throws Exception {
                 MessageFromOtherAtomEvent msgEvent = (MessageFromOtherAtomEvent) event;
                 String text = WonRdfUtils.MessageUtils.getTextMessage(msgEvent.getWonMessage());
-                if (poll.getTitle() == null && flag){
+                if (poll.getTitle() == null && flag && !text.equals("new poll")){
                     poll.setTitle(text);
                     bus.publish(new ConnectionMessageCommandEvent(msgEvent.getCon(), "Please enter the answers (every answer must be one message)\nTo publish the poll enter \"end\""));
                 } else
-                    if(poll.getTitle() !=null && flag && !text.equals("end")){
+                    if(poll.getTitle() != null && flag && !text.equals("end")){
                         poll.addAnswer(text);
                     }
                 //bus.publish(new ConnectionMessageCommandEvent(msgEvent.getCon(), text));
