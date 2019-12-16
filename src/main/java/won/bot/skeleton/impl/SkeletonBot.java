@@ -175,19 +175,6 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                         poll.setId(pollId);
                         bus.publish(new ConnectionMessageCommandEvent(connection, "Poll ID: " + pollId));
                         bus.publish(new ConnectionMessageCommandEvent(connection, "If you wanna create a new poll just enter \"new poll\""));
-                        //Creates new atom
-                        // Create a new atom URI
-                        URI wonNodeUri = ctx.getNodeURISource().getNodeURI();
-                        URI atomURI = ctx.getWonNodeInformationService().generateAtomURI(wonNodeUri);
-
-                        // Set atom data
-                        DefaultAtomModelWrapper atomWrapper = new DefaultAtomModelWrapper(atomURI);
-                        atomWrapper.setTitle("New Poll");
-                        atomWrapper.setDescription("Poll's id: " + pollId);
-
-                        //publish command
-                        CreateAtomCommandEvent createCommand = new CreateAtomCommandEvent(atomWrapper.getDataset(), "atom_uris");
-                        ctx.getEventBus().publish(createCommand);
                         bus.publish(new CreateAtomFromPollEvent(poll));
                         poll = new Poll();
                     }
