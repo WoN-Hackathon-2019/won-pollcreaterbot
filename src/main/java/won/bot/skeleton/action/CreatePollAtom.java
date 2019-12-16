@@ -56,8 +56,9 @@ public class CreatePollAtom extends AbstractCreateAtomAction {
                 // Set atom data
                 DefaultAtomModelWrapper atomWrapper = new DefaultAtomModelWrapper(atomURI);
                 atomWrapper.setTitle("Poll about " + title);
-                atomWrapper.setDescription("This is a poll atom, use the PollVoteBot to vote on this poll");
+
                 atomWrapper.getAtomModel().createResource(atomURI.toString()).addProperty(RDF.type, ModelFactory.createDefaultModel().createProperty(WON.BASE_URI, "PollAtom"));
+                atomWrapper.setDescription("This is a poll atom, use the PollVoteBot to vote on this poll.\n\nInfo:\nTopic:\ttitle\nID:\tLong.toString(id)");
                 Resource pollNode = atomWrapper.createSeeksNode(null);
                 pollNode.addProperty(SCHEMA_EXTENDED.ID, Long.toString(id));
                 //pollNode.addProperty(RDF.type, ModelFactory.createDefaultModel().createProperty(WON.BASE_URI, "PollAtom"));
