@@ -2,6 +2,8 @@ package won.bot.skeleton.action;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.query.Dataset;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import won.bot.framework.eventbot.EventListenerContext;
@@ -24,6 +26,7 @@ import won.protocol.util.RdfUtils;
 import won.protocol.util.WonRdfUtils;
 import org.apache.jena.rdf.model.Resource;
 import won.protocol.vocabulary.SCHEMA;
+import won.protocol.vocabulary.WON;
 
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
@@ -54,8 +57,10 @@ public class CreatePollAtom extends AbstractCreateAtomAction {
                 DefaultAtomModelWrapper atomWrapper = new DefaultAtomModelWrapper(atomURI);
                 atomWrapper.setTitle("Poll about " + title);
                 atomWrapper.setDescription("This is a poll atom, use the PollVoteBot to vote on this poll");
+                atomWrapper.getAtomModel().createResource(atomURI.toString()).addProperty(RDF.type, ModelFactory.createDefaultModel().createProperty(WON.BASE_URI, "PollAtom"));
                 Resource pollNode = atomWrapper.createSeeksNode(null);
                 pollNode.addProperty(SCHEMA_EXTENDED.ID, Long.toString(id));
+                //pollNode.addProperty(RDF.type, ModelFactory.createDefaultModel().createProperty(WON.BASE_URI, "PollAtom"));
                 pollNode.addProperty(SCHEMA.NAME, title);
 
 
