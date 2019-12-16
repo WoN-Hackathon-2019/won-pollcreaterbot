@@ -66,9 +66,9 @@ public class CreatePollAtom extends AbstractCreateAtomAction {
                 };
                 EventBotActionUtils.makeAndSubscribeResponseListener(createAtomMessage, successCallback,
                         failureCallback, ctx);
-                /*logger.debug("registered listeners for response to message URI {}", createAtomMessage.getMessageURI());
-                ctx.getWonMessageSender().sendWonMessage(createAtomMessage);
-                logger.debug("atom creation message sent with message URI {}", createAtomMessage.getMessageURI());*/
+                logger.debug("registered listeners for response to message URI {}", createAtomMessage.getMessageURI());
+                //ctx.getWonMessageSender().sendWonMessage(createAtomMessage);
+                logger.debug("atom creation message sent with message URI {}", createAtomMessage.getMessageURI());
             } catch (Exception e) {
                 logger.error("messaging exception occurred:", e);
             }

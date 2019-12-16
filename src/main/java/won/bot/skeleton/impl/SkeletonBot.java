@@ -21,6 +21,7 @@ import won.bot.framework.eventbot.event.impl.command.connect.ConnectCommandEvent
 import won.bot.framework.eventbot.event.impl.command.connect.ConnectCommandResultEvent;
 import won.bot.framework.eventbot.event.impl.command.connect.ConnectCommandSuccessEvent;
 import won.bot.framework.eventbot.event.impl.command.connectionmessage.ConnectionMessageCommandEvent;
+import won.bot.framework.eventbot.event.impl.command.create.CreateAtomCommandEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.CloseFromOtherAtomEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.ConnectFromOtherAtomEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.MessageFromOtherAtomEvent;
@@ -45,6 +46,7 @@ import won.bot.skeleton.model.Poll;
 import won.bot.skeleton.strawpoll.api.StrawpollAPI;
 import won.bot.skeleton.strawpoll.api.models.SPPoll;
 import won.protocol.model.Connection;
+import won.protocol.util.DefaultAtomModelWrapper;
 import won.protocol.util.WonRdfUtils;
 
 public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAtomExtension, TextMessageCommandExtension {
@@ -163,6 +165,20 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                     }
                     poll = new Poll();
                     bus.publish(new ConnectionMessageCommandEvent(connection, "Poll ID: " + pollId));
+
+                    //Creates new atom
+                    // Create a new atom URI
+                    URI wonNodeUri = ctx.getNodeURISource().getNodeURI();
+                    URI atomURI = ctx.getWonNodeInformationService().generateAtomURI(wonNodeUri);
+
+                    // Set atom data
+                    DefaultAtomModelWrapper atomWrapper = new DefaultAtomModelWrapper(atomURI);
+                    atomWrapper.setTitle("New Poll");
+                    atomWrapper.setDescription("Poll's id: " + pollId);
+
+                    //publish command
+                    CreateAtomCommandEvent createCommand = new CreateAtomCommandEvent(atomWrapper.getDataset(), "atom_uris");
+                    ctx.getEventBus().publish(createCommand);
                 }));
         // activate TextMessageCommandBehaviour
         textMessageCommandBehaviour = new TextMessageCommandBehaviour(ctx,
