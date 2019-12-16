@@ -115,7 +115,7 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                 EventListenerContext ctx = getEventListenerContext();
                 ConnectFromOtherAtomEvent connectFromOtherAtomEvent = (ConnectFromOtherAtomEvent) event;
                 try {
-                    String message = "Hello, I\'m the PollCreatorBot! \nEnter \"new poll\" to create a new poll";
+                    String message = "Hello, I\'m the PollCreatorBot! \nEnter <code>new poll</code> to create a new poll";
                     final ConnectCommandEvent connectCommandEvent = new ConnectCommandEvent(
                                     connectFromOtherAtomEvent.getRecipientSocket(),
                                     connectFromOtherAtomEvent.getSenderSocket(), message);
@@ -161,7 +161,7 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
         botCommands.add(new EqualsTextMessageCommand("end", "Poll has been created", "end",
                 (Connection connection) -> {
                     if(poll.getTitle() == null) bus.publish(new ConnectionMessageCommandEvent(connection, "You have to create a new poll before you can publish"));
-                    else if(poll.getAnswers().size() < 2) bus.publish(new ConnectionMessageCommandEvent(connection, "You'r poll has to have at least two answers"));
+                    else if(poll.getAnswers().size() < 2) bus.publish(new ConnectionMessageCommandEvent(connection, "Your poll has to have at least two answers"));
                     else {
                         bus.publish(new ConnectionMessageCommandEvent(connection, poll.toString()));
                         flag = false;
@@ -170,11 +170,11 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                             logger.info("" + pollId);
                         } catch (Exception e) {
                             logger.error(e.getMessage());
-                            bus.publish(new ConnectionMessageCommandEvent(connection, "An error occurred while creating the poll\nPleas try again later"));
+                            bus.publish(new ConnectionMessageCommandEvent(connection, "An error occurred while creating the poll...\nPlease try again later"));
                         }
                         poll.setId(pollId);
                         bus.publish(new ConnectionMessageCommandEvent(connection, "Poll ID: " + pollId));
-                        bus.publish(new ConnectionMessageCommandEvent(connection, "If you wanna create a new poll just enter \"new poll\""));
+                        bus.publish(new ConnectionMessageCommandEvent(connection, "If you wanna create a new poll just enter <code>new poll</code>"));
                         bus.publish(new CreateAtomFromPollEvent(poll));
                         poll = new Poll();
                     }
@@ -194,7 +194,7 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                 String text = WonRdfUtils.MessageUtils.getTextMessage(msgEvent.getWonMessage());
                 if (poll.getTitle() == null && flag && !text.equals("new poll")){
                     poll.setTitle(text);
-                    bus.publish(new ConnectionMessageCommandEvent(msgEvent.getCon(), "Please enter the answers (every answer must be one message)\nTo publish the poll enter \"end\""));
+                    bus.publish(new ConnectionMessageCommandEvent(msgEvent.getCon(), "Please enter the answers (every answer must be one message)\nTo publish the poll enter <code>end</code>"));
                 } else
                     if(poll.getTitle() != null && flag && !text.equals("end")){
                         poll.addAnswer(text);
