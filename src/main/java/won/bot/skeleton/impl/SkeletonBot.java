@@ -40,8 +40,10 @@ import won.bot.framework.extensions.textmessagecommand.TextMessageCommandExtensi
 import won.bot.framework.extensions.textmessagecommand.command.EqualsTextMessageCommand;
 import won.bot.framework.extensions.textmessagecommand.command.PatternMatcherTextMessageCommand;
 import won.bot.framework.extensions.textmessagecommand.command.TextMessageCommand;
+import won.bot.skeleton.action.CreatePollAtom;
 import won.bot.skeleton.action.MatcherExtensionAtomCreatedAction;
 import won.bot.skeleton.context.SkeletonBotContextWrapper;
+import won.bot.skeleton.event.CreateAtomFromPollEvent;
 import won.bot.skeleton.model.Poll;
 import won.bot.skeleton.strawpoll.api.StrawpollAPI;
 import won.bot.skeleton.strawpoll.api.models.SPPoll;
@@ -170,11 +172,9 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                             logger.error(e.getMessage());
                             bus.publish(new ConnectionMessageCommandEvent(connection, "An error occurred while creating the poll\nPleas try again later"));
                         }
-                        poll = new Poll();
+                        poll.setId(pollId);
                         bus.publish(new ConnectionMessageCommandEvent(connection, "Poll ID: " + pollId));
                         bus.publish(new ConnectionMessageCommandEvent(connection, "If you wanna create a new poll just enter \"new poll\""));
-
-
                         //Creates new atom
                         // Create a new atom URI
                         URI wonNodeUri = ctx.getNodeURISource().getNodeURI();
@@ -188,6 +188,7 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                         //publish command
                         CreateAtomCommandEvent createCommand = new CreateAtomCommandEvent(atomWrapper.getDataset(), "atom_uris");
                         ctx.getEventBus().publish(createCommand);
+                        bus.publish(new CreateAtomFromPollEvent(poll));
                         poll = new Poll();
                     }
 
@@ -196,6 +197,8 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
         textMessageCommandBehaviour = new TextMessageCommandBehaviour(ctx,
                 botCommands.toArray(new TextMessageCommand[0]));
         textMessageCommandBehaviour.activate();
+
+        bus.subscribe(CreateAtomFromPollEvent.class, new CreatePollAtom(ctx));
 
         bus.subscribe(MessageFromOtherAtomEvent.class, noInternalServiceAtomEventFilter, new BaseEventBotAction(ctx) {
             @Override

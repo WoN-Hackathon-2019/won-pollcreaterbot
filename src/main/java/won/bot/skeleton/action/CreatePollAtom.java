@@ -8,10 +8,13 @@ import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.EventBotActionUtils;
 import won.bot.framework.eventbot.action.impl.atomlifecycle.AbstractCreateAtomAction;
 import won.bot.framework.eventbot.event.Event;
+import won.bot.framework.eventbot.event.impl.command.create.CreateAtomCommandEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.FailureResponseEvent;
 import won.bot.framework.eventbot.listener.EventListener;
 import won.bot.skeleton.context.SkeletonBotContextWrapper;
 import won.bot.skeleton.event.CreateAtomFromPollEvent;
+import won.bot.skeleton.model.Poll;
+import won.bot.skeleton.model.SCHEMA_EXTENDED;
 import won.bot.skeleton.strawpoll.api.models.SPPoll;
 import won.bot.skeleton.strawpoll.api.models.SPPollOption;
 import won.protocol.message.WonMessage;
@@ -19,6 +22,8 @@ import won.protocol.service.WonNodeInformationService;
 import won.protocol.util.DefaultAtomModelWrapper;
 import won.protocol.util.RdfUtils;
 import won.protocol.util.WonRdfUtils;
+import org.apache.jena.rdf.model.Resource;
+import won.protocol.vocabulary.SCHEMA;
 
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
@@ -35,21 +40,30 @@ public class CreatePollAtom extends AbstractCreateAtomAction {
         EventListenerContext ctx = getEventListenerContext();
         if (event instanceof CreateAtomFromPollEvent && ctx.getBotContextWrapper() instanceof SkeletonBotContextWrapper) {
             SkeletonBotContextWrapper botContextWrapper = (SkeletonBotContextWrapper) ctx.getBotContextWrapper();
-            SPPoll poll = ((CreateAtomFromPollEvent) event).getPoll();
+            Poll poll = ((CreateAtomFromPollEvent) event).getPoll();
             try {
                 String title = poll.getTitle();
                 long id = poll.getId();
-                boolean multi = poll.isMulti();
-                List<SPPollOption> options = poll.getOptions();
 
-                WonNodeInformationService wonNodeInformationService = ctx.getWonNodeInformationService();
+                //Creates new atom
+                // Create a new atom URI
                 final URI wonNodeUri = ctx.getNodeURISource().getNodeURI();
-                final URI atomURI = wonNodeInformationService.generateAtomURI(wonNodeUri);
+                final URI atomURI = ctx.getWonNodeInformationService().generateAtomURI(wonNodeUri);
 
-                DefaultAtomModelWrapper atomModelWrapper = new DefaultAtomModelWrapper(atomURI);
-                atomModelWrapper.setTitle(title);
-                atomModelWrapper.setDescription("Poll about " + title);
+                // Set atom data
+                DefaultAtomModelWrapper atomWrapper = new DefaultAtomModelWrapper(atomURI);
+                atomWrapper.setTitle("Poll about " + title);
+                atomWrapper.setDescription("This is a poll atom, use the PollVoteBot to vote on this poll");
+                Resource pollNode = atomWrapper.createSeeksNode(null);
+                pollNode.addProperty(SCHEMA_EXTENDED.ID, Long.toString(id));
+                pollNode.addProperty(SCHEMA.NAME, title);
 
+
+                //publish command
+                CreateAtomCommandEvent createCommand = new CreateAtomCommandEvent(atomWrapper.getDataset(), "atom_uris");
+                ctx.getEventBus().publish(createCommand);
+
+                /*
                 Dataset dataset = atomModelWrapper.copyDataset();
                 logger.debug("creating atom on won node {} with content {} ", wonNodeUri,
                         StringUtils.abbreviate(RdfUtils.toString(dataset), 150));
@@ -68,7 +82,7 @@ public class CreatePollAtom extends AbstractCreateAtomAction {
                         failureCallback, ctx);
                 logger.debug("registered listeners for response to message URI {}", createAtomMessage.getMessageURI());
                 //ctx.getWonMessageSender().sendWonMessage(createAtomMessage);
-                logger.debug("atom creation message sent with message URI {}", createAtomMessage.getMessageURI());
+                logger.debug("atom creation message sent with message URI {}", createAtomMessage.getMessageURI());*/
             } catch (Exception e) {
                 logger.error("messaging exception occurred:", e);
             }
