@@ -46,7 +46,7 @@ import won.bot.skeleton.strawpoll.api.StrawpollAPI;
 import won.protocol.model.Connection;
 import won.protocol.util.WonRdfUtils;
 
-public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAtomExtension, TextMessageCommandExtension {
+public class PollCreatorBot extends EventBot implements MatcherExtension, ServiceAtomExtension, TextMessageCommandExtension {
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private int registrationMatcherRetryInterval;
     private MatcherBehaviour matcherBehaviour;
