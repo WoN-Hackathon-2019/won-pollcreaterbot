@@ -10,7 +10,7 @@ public class SCHEMA_EXTENDED extends SCHEMA {
     private static Model m = ModelFactory.createDefaultModel();
 
     static {
-        ID = m.createProperty("http://schema.org/identifier");
+        ID = m.createProperty(getURI() + "identifier");
     }
 
 }
