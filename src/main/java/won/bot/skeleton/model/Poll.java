@@ -1,5 +1,7 @@
 package won.bot.skeleton.model;
 
+import org.joda.time.DateTime;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,6 +9,7 @@ public class Poll {
     private String title;
     private List<String> answers;
     private List<String> tags;
+    private DateTime expiriation;
     private long id;
 
     public Poll(){
@@ -29,6 +32,14 @@ public class Poll {
 
     public void setAnswers(List<String> answers) {
         this.answers = answers;
+    }
+
+    public DateTime getExpiriation() {
+        return expiriation;
+    }
+
+    public void setExpiriation(DateTime expiriation) {
+        this.expiriation = expiriation;
     }
 
     public void addAnswer(String ans){

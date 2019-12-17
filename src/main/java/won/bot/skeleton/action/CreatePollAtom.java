@@ -27,6 +27,8 @@ import won.protocol.util.WonRdfUtils;
 import org.apache.jena.rdf.model.Resource;
 import won.protocol.vocabulary.SCHEMA;
 import won.protocol.vocabulary.WON;
+import won.protocol.vocabulary.WONCON;
+import won.protocol.vocabulary.WONMATCH;
 
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
@@ -64,6 +66,7 @@ public class CreatePollAtom extends AbstractCreateAtomAction {
                 atom.addProperty(RDF.type, ModelFactory.createDefaultModel().createProperty(WON.BASE_URI, "PollAtom"));
                 atom.addProperty(SCHEMA_EXTENDED.ID, Long.toString(id));
                 atom.addProperty(SCHEMA.NAME, title);
+                atom.addProperty(WONMATCH.doNotMatchAfter, poll.getExpiriation().toString());
 
                 //publish command
                 CreateAtomCommandEvent createCommand = new CreateAtomCommandEvent(atomWrapper.getDataset(), "atom_uris");

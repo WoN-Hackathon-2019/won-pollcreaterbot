@@ -50,6 +50,7 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
     private Poll poll = new Poll();
     private boolean typingPollContent = false;
     private boolean addingTags = false;
+    private boolean typingExpiration = false;
     private long pollId;
 
     // bean setter, used by spring
@@ -145,8 +146,8 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                     if(poll.getTitle()!=null){
                         bus.publish(new ConnectionMessageCommandEvent(connection, "Previous poll was canceled!"));
                     }
-                    bus.publish(new ConnectionMessageCommandEvent(connection, "Please enter your question"));
-                    typingPollContent = true;
+                    bus.publish(new ConnectionMessageCommandEvent(connection, "Please enter the expiration date of the poll (format: dd/MM/yyyy HH:mm:ss)"));
+                    typingExpiration = true;
                     poll = new Poll();
                 }));
         botCommands.add(new EqualsTextMessageCommand("end", "Add some Tags", "end",
