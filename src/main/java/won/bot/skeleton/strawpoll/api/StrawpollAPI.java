@@ -128,6 +128,7 @@ public class StrawpollAPI {
         body.put("title", question);
         body.put("options", answers);
         body.put("multi", false);
+        body.put("dupcheck", "disabled");
         String rawJSON = body.toString();
         return new StringEntity(rawJSON);
     }

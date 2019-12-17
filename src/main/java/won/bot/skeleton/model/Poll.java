@@ -10,10 +10,10 @@ public class Poll {
     private List<String> answers;
     private List<String> tags;
     private DateTime expiriation;
-    public long id;
-    public boolean typingPollContent = false;
-    public boolean addingTags = false;
-    public boolean typingExpiration = false;
+    private long id;
+    private boolean typingPollContent = false;
+    private boolean addingTags = false;
+    private boolean typingExpiration = false;
 
     public Poll(){
         answers = new ArrayList<>();
@@ -61,7 +61,36 @@ public class Poll {
         this.id = id;
     }
 
-    public List<String> getTags() {return this.tags;};
+    public List<String> getTags() {return this.tags;}
+
+
+    public void setTags(List<String> tags) {
+        this.tags = tags;
+    }
+
+    public boolean isTypingPollContent() {
+        return typingPollContent;
+    }
+
+    public void setTypingPollContent(boolean typingPollContent) {
+        this.typingPollContent = typingPollContent;
+    }
+
+    public boolean isAddingTags() {
+        return addingTags;
+    }
+
+    public void setAddingTags(boolean addingTags) {
+        this.addingTags = addingTags;
+    }
+
+    public boolean isTypingExpiration() {
+        return typingExpiration;
+    }
+
+    public void setTypingExpiration(boolean typingExpiration) {
+        this.typingExpiration = typingExpiration;
+    }
 
     @Override
     public String toString() {

@@ -148,15 +148,16 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                     Poll poll = polls.get(connection.getTargetSocketURI());
                     if (poll == null) polls.put(connection.getTargetSocketURI(), new Poll());
                     poll = polls.get(connection.getTargetSocketURI());
-                    if(poll.getTitle()!=null || poll.typingExpiration || poll.typingPollContent || poll.addingTags){
-                        poll.typingExpiration = false;
-                        poll.typingPollContent = false;
-                        poll.addingTags = false;
+                    if(poll.getTitle()!=null || poll.isTypingExpiration() || poll.isTypingPollContent() || poll.isAddingTags()){
+                        poll.setTypingExpiration(false);
+                        poll.setTypingPollContent(false);
+                        poll.setAddingTags(false);
                         bus.publish(new ConnectionMessageCommandEvent(connection, "Previous poll was canceled!"));
                         polls.put(connection.getTargetSocketURI(), new Poll());
                     }
+                    poll = polls.get(connection.getTargetSocketURI());
                     bus.publish(new ConnectionMessageCommandEvent(connection, "Please enter the expiration date of the poll (format: dd/MM/yyyy)"));
-                    poll.typingExpiration = true;
+                    poll.setTypingExpiration(true);
                 }));
         botCommands.add(new EqualsTextMessageCommand("end", "Add some Tags", "end",
                 (Connection connection) -> {
@@ -169,8 +170,8 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                     else if(poll.getAnswers().size() < 2) bus.publish(new ConnectionMessageCommandEvent(connection, "Your poll has to have at least two answers"));
                     else {
                         bus.publish(new ConnectionMessageCommandEvent(connection, "Before we create the poll, you can add some tags to find your poll.\n Just enter the tags as you did with the answers\ntype `done`, if you want us to publish the poll"));
-                        poll.typingPollContent = false;
-                        poll.addingTags = true;
+                        poll.setTypingPollContent(false);
+                        poll.setAddingTags(true);
                     }
                 }));
 
@@ -184,18 +185,17 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                     if(poll.getTitle() == null) bus.publish(new ConnectionMessageCommandEvent(connection, "You have to create a new poll before you can publish"));
                     else if(poll.getAnswers().size() < 2) bus.publish(new ConnectionMessageCommandEvent(connection, "Your poll has to have at least two answers"));
                     else {
-                        poll.typingPollContent = false;
-                        poll.addingTags = false;
+                        poll.setTypingPollContent(false);
+                        poll.setAddingTags(false);
                         try {
-                            poll.id = StrawpollAPI.create(poll.getTitle(), poll.getAnswers());
-                            logger.info("Created Poll ID:" + poll.id);
+                            poll.setId(StrawpollAPI.create(poll.getTitle(), poll.getAnswers()));
+                            logger.info("Created Poll ID:" + poll.getId());
                         } catch (Exception e) {
                             logger.error(e.getMessage());
                             bus.publish(new ConnectionMessageCommandEvent(connection, "An error occurred while creating the poll...\nPlease try again later"));
                         }
-                        poll.setId(poll.id);
                         bus.publish(new ConnectionMessageCommandEvent(connection, poll.toString()));
-                        bus.publish(new ConnectionMessageCommandEvent(connection, "Poll ID: " + poll.id));
+                        bus.publish(new ConnectionMessageCommandEvent(connection, "Poll ID: " + poll.getId()));
                         bus.publish(new ConnectionMessageCommandEvent(connection, "If you wanna create a new poll just enter `new poll`"));
                         bus.publish(new CreateAtomFromPollEvent(poll));
                         polls.put(connection.getTargetSocketURI(), new Poll());
@@ -219,7 +219,7 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                     //bus.publish(new ConnectionMessageCommandEvent(msgEvent.getCon(), "You have to create a Poll!!"));
                     return;
                 }
-                if (poll.typingExpiration && !text.equals("end") && !text.equals("done") && !text.equals("new poll")) {
+                if (poll.isTypingExpiration() && !text.equals("end") && !text.equals("done") && !text.equals("new poll")) {
                     DateTimeFormatter formatter = DateTimeFormat.forPattern("dd/MM/yyyy");
                     try{
                         poll.setExpiriation(DateTime.parse(text, formatter));
@@ -229,15 +229,15 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                         return;
                     }
 
-                    poll.typingExpiration = false;
+                    poll.setTypingExpiration(false);
                     bus.publish(new ConnectionMessageCommandEvent(msgEvent.getCon(), "Please enter your question"));
-                    poll.typingPollContent = true;
-                }else if (poll.getTitle() == null && poll.typingPollContent && !text.equals("new poll")){
+                    poll.setTypingPollContent(true);
+                }else if (poll.getTitle() == null && poll.isTypingPollContent() && !text.equals("new poll")){
                     poll.setTitle(text);
                     bus.publish(new ConnectionMessageCommandEvent(msgEvent.getCon(), "Please enter the answers (every answer must be one message)\nTo publish the poll enter `end`"));
-                } else if(poll.getTitle() != null && poll.typingPollContent && !text.equals("end")){
+                } else if(poll.getTitle() != null && poll.isTypingPollContent() && !text.equals("end")){
                         if(!poll.getAnswers().contains(text)) poll.addAnswer(text);
-                } else if (poll.getTitle() != null && poll.addingTags && !text.equals("end") && !text.equals("done")) {
+                } else if (poll.getTitle() != null && poll.isAddingTags() && !text.equals("end") && !text.equals("done")) {
                         if(!poll.getTags().contains(text))poll.addTags(text);
                 }
                 //bus.publish(new ConnectionMessageCommandEvent(msgEvent.getCon(), text));
