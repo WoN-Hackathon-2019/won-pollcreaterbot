@@ -46,12 +46,19 @@ public class Poll {
         this.id = id;
     }
 
+    public List<String> getTags() {return this.tags;};
+
     @Override
     public String toString() {
-        String text = "";
+        String text = "{";
         for(String a : answers){
             text += "\n\t " + a;
         }
-        return "Umfrage: " + title + "\nAntworten: \n{" + text + "\n}";
+        text += "\n} \n tags \n {";
+        for (String a : tags){
+            text += "\n\t " + a;
+        }
+        text += "\n}";
+        return "Umfrage: " + title + "\nAntworten: \n" + text ;
     }
 }

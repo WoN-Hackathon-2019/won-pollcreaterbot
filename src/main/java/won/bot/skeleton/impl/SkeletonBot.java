@@ -94,7 +94,7 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
         // if activated, a MatcherExtensionAtomCreatedEvent is sent every time a new
         // atom is created on a monitored node
         matcherBehaviour = new MatcherBehaviour(ctx, "BotSkeletonMatchingExtension", registrationMatcherRetryInterval);
-        matcherBehaviour.activate();
+        //matcherBehaviour.activate();
         // create filters to determine which atoms the bot should react to
         NotFilter noOwnAtoms = new NotFilter(
                         new AtomUriInNamedListFilter(ctx, ctx.getBotContextWrapper().getAtomCreateListName()));
@@ -149,12 +149,12 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                     typingPollContent = true;
                     poll = new Poll();
                 }));
-        botCommands.add(new EqualsTextMessageCommand("end", "Poll will be created, do you want to add tags first? Type `tag <tag>`. If you are done, type `done`.", "end",
+        botCommands.add(new EqualsTextMessageCommand("end", "Add some Tags", "end",
                 (Connection connection) -> {
                     if(poll.getTitle() == null) bus.publish(new ConnectionMessageCommandEvent(connection, "You have to create a new poll before you can publish"));
                     else if(poll.getAnswers().size() < 2) bus.publish(new ConnectionMessageCommandEvent(connection, "Your poll has to have at least two answers"));
                     else {
-                        bus.publish(new ConnectionMessageCommandEvent(connection, poll.toString()));
+                        bus.publish(new ConnectionMessageCommandEvent(connection, "Before we create the poll, you can add some tags to find your poll.\n Just enter the tags as you did with the answers\ntype done, if you want us to publish the poll"));
                         typingPollContent = false;
                         addingTags = true;
                     }
@@ -165,7 +165,6 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                     if(poll.getTitle() == null) bus.publish(new ConnectionMessageCommandEvent(connection, "You have to create a new poll before you can publish"));
                     else if(poll.getAnswers().size() < 2) bus.publish(new ConnectionMessageCommandEvent(connection, "Your poll has to have at least two answers"));
                     else {
-                        bus.publish(new ConnectionMessageCommandEvent(connection, poll.toString()));
                         typingPollContent = false;
                         addingTags = false;
                         try {
@@ -176,6 +175,7 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                             bus.publish(new ConnectionMessageCommandEvent(connection, "An error occurred while creating the poll...\nPlease try again later"));
                         }
                         poll.setId(pollId);
+                        bus.publish(new ConnectionMessageCommandEvent(connection, poll.toString()));
                         bus.publish(new ConnectionMessageCommandEvent(connection, "Poll ID: " + pollId));
                         bus.publish(new ConnectionMessageCommandEvent(connection, "If you wanna create a new poll just enter `new poll`"));
                         bus.publish(new CreateAtomFromPollEvent(poll));
@@ -199,9 +199,9 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                     poll.setTitle(text);
                     bus.publish(new ConnectionMessageCommandEvent(msgEvent.getCon(), "Please enter the answers (every answer must be one message)\nTo publish the poll enter `end`"));
                 } else if(poll.getTitle() != null && typingPollContent && !text.equals("end")){
-                        poll.addAnswer(text);
-                } else if (poll.getTitle() != null && addingTags && !text.equals("done")) {
-                        poll.addTags(text);
+                        if(!poll.getAnswers().contains(text)) poll.addAnswer(text);
+                } else if (poll.getTitle() != null && addingTags && !text.equals("end") && !text.equals("done")) {
+                        if(!poll.getTags().contains(text))poll.addTags(text);
                 }
 
                 //bus.publish(new ConnectionMessageCommandEvent(msgEvent.getCon(), text));
