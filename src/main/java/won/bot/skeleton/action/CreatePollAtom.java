@@ -42,7 +42,6 @@ public class CreatePollAtom extends AbstractCreateAtomAction {
     protected void doRun(Event event, EventListener executingListener) throws Exception {
         EventListenerContext ctx = getEventListenerContext();
         if (event instanceof CreateAtomFromPollEvent && ctx.getBotContextWrapper() instanceof SkeletonBotContextWrapper) {
-            SkeletonBotContextWrapper botContextWrapper = (SkeletonBotContextWrapper) ctx.getBotContextWrapper();
             Poll poll = ((CreateAtomFromPollEvent) event).getPoll();
             try {
                 String title = poll.getTitle();
@@ -57,42 +56,18 @@ public class CreatePollAtom extends AbstractCreateAtomAction {
                 DefaultAtomModelWrapper atomWrapper = new DefaultAtomModelWrapper(atomURI);
                 atomWrapper.setTitle("Poll about " + title);
                 atomWrapper.setDescription("This is a poll atom, use the PollVoteBot to vote on this poll.\n\nInfo:\nTopic:\t " + title + "\nID:\t " + Long.toString(id));
+                for (String s : poll.getTags()) {
+                    atomWrapper.addTag(s);
+                }
 
                 Resource atom = atomWrapper.getAtomModel().createResource(atomURI.toString());
                 atom.addProperty(RDF.type, ModelFactory.createDefaultModel().createProperty(WON.BASE_URI, "PollAtom"));
                 atom.addProperty(SCHEMA_EXTENDED.ID, Long.toString(id));
                 atom.addProperty(SCHEMA.NAME, title);
 
-                //Resource pollNode = atomWrapper.createSeeksNode(null);
-                //pollNode.addProperty(SCHEMA_EXTENDED.ID, Long.toString(id));
-                //pollNode.addProperty(RDF.type, ModelFactory.createDefaultModel().createProperty(WON.BASE_URI, "PollAtom"));
-                //pollNode.addProperty(SCHEMA.NAME, title);
-
-
                 //publish command
                 CreateAtomCommandEvent createCommand = new CreateAtomCommandEvent(atomWrapper.getDataset(), "atom_uris");
                 ctx.getEventBus().publish(createCommand);
-
-                /*
-                Dataset dataset = atomModelWrapper.copyDataset();
-                logger.debug("creating atom on won node {} with content {} ", wonNodeUri,
-                        StringUtils.abbreviate(RdfUtils.toString(dataset), 150));
-                WonMessage createAtomMessage = ctx.getWonMessageSender().prepareMessage(createWonMessage(atomURI, dataset));
-                EventBotActionUtils.rememberInList(ctx, atomURI, uriListName);
-
-                EventListener successCallback = event12 -> {
-                    logger.debug("atom creation successful, new atom URI is {}", atomURI);
-                };
-                EventListener failureCallback = event1 -> {
-                    logger.debug("atom creation failed for atom URI {}, error {}", atomURI, WonRdfUtils.MessageUtils
-                            .getTextMessage(((FailureResponseEvent) event1).getFailureMessage()));
-                    EventBotActionUtils.removeFromList(ctx, atomURI, uriListName);
-                };
-                EventBotActionUtils.makeAndSubscribeResponseListener(createAtomMessage, successCallback,
-                        failureCallback, ctx);
-                logger.debug("registered listeners for response to message URI {}", createAtomMessage.getMessageURI());
-                //ctx.getWonMessageSender().sendWonMessage(createAtomMessage);
-                logger.debug("atom creation message sent with message URI {}", createAtomMessage.getMessageURI());*/
             } catch (Exception e) {
                 logger.error("messaging exception occurred:", e);
             }
