@@ -4,6 +4,9 @@ import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -202,6 +205,13 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                         if(!poll.getAnswers().contains(text)) poll.addAnswer(text);
                 } else if (poll.getTitle() != null && addingTags && !text.equals("end") && !text.equals("done")) {
                         if(!poll.getTags().contains(text))poll.addTags(text);
+                } else if (poll.getTitle() != null && typingExpiration && !text.equals("end") && !text.equals("done")) {
+                    DateTimeFormatter formatter = DateTimeFormat.forPattern("dd/MM/yyyy HH:mm:ss");
+                    poll.setExpiriation(DateTime.parse(text, formatter));
+                    typingExpiration = false;
+                    bus.publish(new ConnectionMessageCommandEvent(msgEvent.getCon(), "Please enter your question"));
+
+                    typingPollContent = false;
                 }
                 //bus.publish(new ConnectionMessageCommandEvent(msgEvent.getCon(), text));
             }
