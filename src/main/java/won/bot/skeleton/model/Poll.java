@@ -10,7 +10,10 @@ public class Poll {
     private List<String> answers;
     private List<String> tags;
     private DateTime expiriation;
-    private long id;
+    public long id;
+    public boolean typingPollContent = false;
+    public boolean addingTags = false;
+    public boolean typingExpiration = false;
 
     public Poll(){
         answers = new ArrayList<>();

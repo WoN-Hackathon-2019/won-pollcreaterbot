@@ -56,7 +56,7 @@ public class CreatePollAtom extends AbstractCreateAtomAction {
 
                 // Set atom data
                 DefaultAtomModelWrapper atomWrapper = new DefaultAtomModelWrapper(atomURI);
-                atomWrapper.setTitle("Poll about " + title);
+                atomWrapper.setTitle("Poll: \"" + title + "\"");
                 atomWrapper.setDescription("This is a poll atom, use the PollVoteBot to vote on this poll.\n\nInfo:\nTopic:\t " + title + "\nID:\t " + Long.toString(id));
                 for (String s : poll.getTags()) {
                     atomWrapper.addTag(s);
