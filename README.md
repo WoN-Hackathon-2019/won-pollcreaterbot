@@ -1,9 +1,8 @@
-# Web of Needs Bot Skeleton
+# Web of Needs Poll Creator Bot
 
-This skeleton contains a bot that creates a Service Atom that one can connect to. 
-For each atom that has been created on the configured node(s), the bot sends a message with the atomUri of the created Atom to everyone that is connected to the Service Atom.
+A WebOfNeeds-Bot which allows the creation of online polls on the plattform strawpoll.me. All required information is collected via an interactive chat with the bot. 
 
-The Bot Skeleton is a [Spring Boot Application](https://docs.spring.io/spring-boot/docs/current/reference/html/using-boot-running-your-application.html).
+This Bot is a [Spring Boot Application](https://docs.spring.io/spring-boot/docs/current/reference/html/using-boot-running-your-application.html).
 
 ## Running the bot
 
@@ -36,14 +35,6 @@ If you get a message indicating your keysize is restricted on startup (`JCE unli
 
 ##### Optional Parameters for both Run Configurations:
 - `WON_KEYSTORE_DIR` path to folder where `bot-keys.jks` and `owner-trusted-certs.jks` are stored (needs write access and folder must exist) 
-
-## Start coding
-
-Once the skeleton bot is running, you can use it as a base for implementing your own application. 
-
-## Setting up
-- Download or clone this repository
-- Add config files
 
 Please refer to the general [Bot Readme](https://github.com/researchstudio-sat/webofneeds/blob/master/webofneeds/won-bot/README.md) for more information on Web of Needs Bot applications.
 
