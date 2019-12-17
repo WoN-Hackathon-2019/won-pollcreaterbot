@@ -6,10 +6,12 @@ import java.util.List;
 public class Poll {
     private String title;
     private List<String> answers;
+    private List<String> tags;
     private long id;
 
     public Poll(){
         answers = new ArrayList<>();
+        tags = new ArrayList<>();
     }
 
     public String getTitle() {
@@ -30,6 +32,10 @@ public class Poll {
 
     public void addAnswer(String ans){
         answers.add(ans);
+    }
+
+    public void addTags(String tag) {
+        tags.add(tag);
     }
 
     public long getId() {

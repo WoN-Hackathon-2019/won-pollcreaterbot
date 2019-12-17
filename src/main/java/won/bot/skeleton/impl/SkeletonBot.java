@@ -1,13 +1,9 @@
 package won.bot.skeleton.impl;
 
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.net.URI;
 import java.util.ArrayList;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,8 +17,6 @@ import won.bot.framework.eventbot.event.impl.command.connect.ConnectCommandEvent
 import won.bot.framework.eventbot.event.impl.command.connect.ConnectCommandResultEvent;
 import won.bot.framework.eventbot.event.impl.command.connect.ConnectCommandSuccessEvent;
 import won.bot.framework.eventbot.event.impl.command.connectionmessage.ConnectionMessageCommandEvent;
-import won.bot.framework.eventbot.event.impl.command.create.CreateAtomCommandEvent;
-import won.bot.framework.eventbot.event.impl.wonmessage.CloseFromOtherAtomEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.ConnectFromOtherAtomEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.MessageFromOtherAtomEvent;
 import won.bot.framework.eventbot.filter.impl.AtomUriInNamedListFilter;
@@ -32,7 +26,6 @@ import won.bot.framework.eventbot.listener.EventListener;
 import won.bot.framework.eventbot.listener.impl.ActionOnFirstEventListener;
 import won.bot.framework.extensions.matcher.MatcherBehaviour;
 import won.bot.framework.extensions.matcher.MatcherExtension;
-import won.bot.framework.extensions.matcher.MatcherExtensionAtomCreatedEvent;
 import won.bot.framework.extensions.serviceatom.ServiceAtomBehaviour;
 import won.bot.framework.extensions.serviceatom.ServiceAtomExtension;
 import won.bot.framework.extensions.textmessagecommand.TextMessageCommandBehaviour;
@@ -41,14 +34,11 @@ import won.bot.framework.extensions.textmessagecommand.command.EqualsTextMessage
 import won.bot.framework.extensions.textmessagecommand.command.PatternMatcherTextMessageCommand;
 import won.bot.framework.extensions.textmessagecommand.command.TextMessageCommand;
 import won.bot.skeleton.action.CreatePollAtom;
-import won.bot.skeleton.action.MatcherExtensionAtomCreatedAction;
 import won.bot.skeleton.context.SkeletonBotContextWrapper;
 import won.bot.skeleton.event.CreateAtomFromPollEvent;
 import won.bot.skeleton.model.Poll;
 import won.bot.skeleton.strawpoll.api.StrawpollAPI;
-import won.bot.skeleton.strawpoll.api.models.SPPoll;
 import won.protocol.model.Connection;
-import won.protocol.util.DefaultAtomModelWrapper;
 import won.protocol.util.WonRdfUtils;
 
 public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAtomExtension, TextMessageCommandExtension {
@@ -58,7 +48,8 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
     private ServiceAtomBehaviour serviceAtomBehaviour;
     private TextMessageCommandBehaviour textMessageCommandBehaviour;
     private Poll poll = new Poll();
-    private boolean flag  = false;
+    private boolean typingPollContent = false;
+    private boolean addingTags = false;
     private long pollId;
 
     // bean setter, used by spring
@@ -115,7 +106,7 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                 EventListenerContext ctx = getEventListenerContext();
                 ConnectFromOtherAtomEvent connectFromOtherAtomEvent = (ConnectFromOtherAtomEvent) event;
                 try {
-                    String message = "Hello, I\'m the PollCreatorBot! \nEnter <code>new poll</code> to create a new poll";
+                    String message = "Hello, I\'m the PollCreatorBot! \nEnter `new poll` to create a new poll";
                     final ConnectCommandEvent connectCommandEvent = new ConnectCommandEvent(
                                     connectFromOtherAtomEvent.getRecipientSocket(),
                                     connectFromOtherAtomEvent.getSenderSocket(), message);
@@ -155,16 +146,28 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                         bus.publish(new ConnectionMessageCommandEvent(connection, "Previous poll was canceled!"));
                     }
                     bus.publish(new ConnectionMessageCommandEvent(connection, "Please enter your question"));
-                    flag = true;
+                    typingPollContent = true;
                     poll = new Poll();
                 }));
-        botCommands.add(new EqualsTextMessageCommand("end", "Poll has been created", "end",
+        botCommands.add(new EqualsTextMessageCommand("end", "Poll will be created, do you want to add tags first? Type `tag <tag>`. If you are done, type `done`.", "end",
                 (Connection connection) -> {
                     if(poll.getTitle() == null) bus.publish(new ConnectionMessageCommandEvent(connection, "You have to create a new poll before you can publish"));
                     else if(poll.getAnswers().size() < 2) bus.publish(new ConnectionMessageCommandEvent(connection, "Your poll has to have at least two answers"));
                     else {
                         bus.publish(new ConnectionMessageCommandEvent(connection, poll.toString()));
-                        flag = false;
+                        typingPollContent = false;
+                        addingTags = true;
+                    }
+                }));
+
+        botCommands.add(new EqualsTextMessageCommand("done", "Poll has been created.", "done",
+                (Connection connection) -> {
+                    if(poll.getTitle() == null) bus.publish(new ConnectionMessageCommandEvent(connection, "You have to create a new poll before you can publish"));
+                    else if(poll.getAnswers().size() < 2) bus.publish(new ConnectionMessageCommandEvent(connection, "Your poll has to have at least two answers"));
+                    else {
+                        bus.publish(new ConnectionMessageCommandEvent(connection, poll.toString()));
+                        typingPollContent = false;
+                        addingTags = false;
                         try {
                             pollId = StrawpollAPI.create(poll.getTitle(), poll.getAnswers());
                             logger.info("" + pollId);
@@ -174,7 +177,7 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                         }
                         poll.setId(pollId);
                         bus.publish(new ConnectionMessageCommandEvent(connection, "Poll ID: " + pollId));
-                        bus.publish(new ConnectionMessageCommandEvent(connection, "If you wanna create a new poll just enter <code>new poll</code>"));
+                        bus.publish(new ConnectionMessageCommandEvent(connection, "If you wanna create a new poll just enter `new poll`"));
                         bus.publish(new CreateAtomFromPollEvent(poll));
                         poll = new Poll();
                     }
@@ -192,13 +195,15 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
             protected void doRun(Event event, EventListener eventListener) throws Exception {
                 MessageFromOtherAtomEvent msgEvent = (MessageFromOtherAtomEvent) event;
                 String text = WonRdfUtils.MessageUtils.getTextMessage(msgEvent.getWonMessage());
-                if (poll.getTitle() == null && flag && !text.equals("new poll")){
+                if (poll.getTitle() == null && typingPollContent && !text.equals("new poll")){
                     poll.setTitle(text);
-                    bus.publish(new ConnectionMessageCommandEvent(msgEvent.getCon(), "Please enter the answers (every answer must be one message)\nTo publish the poll enter <code>end</code>"));
-                } else
-                    if(poll.getTitle() != null && flag && !text.equals("end")){
+                    bus.publish(new ConnectionMessageCommandEvent(msgEvent.getCon(), "Please enter the answers (every answer must be one message)\nTo publish the poll enter `end`"));
+                } else if(poll.getTitle() != null && typingPollContent && !text.equals("end")){
                         poll.addAnswer(text);
-                    }
+                } else if (poll.getTitle() != null && addingTags && !text.equals("done")) {
+                        poll.addTags(text);
+                }
+
                 //bus.publish(new ConnectionMessageCommandEvent(msgEvent.getCon(), text));
             }
         });
