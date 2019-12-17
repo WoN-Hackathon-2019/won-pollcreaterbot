@@ -154,7 +154,7 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                     if(poll.getTitle() == null) bus.publish(new ConnectionMessageCommandEvent(connection, "You have to create a new poll before you can publish"));
                     else if(poll.getAnswers().size() < 2) bus.publish(new ConnectionMessageCommandEvent(connection, "Your poll has to have at least two answers"));
                     else {
-                        bus.publish(new ConnectionMessageCommandEvent(connection, "Before we create the poll, you can add some tags to find your poll.\n Just enter the tags as you did with the answers\ntype done, if you want us to publish the poll"));
+                        bus.publish(new ConnectionMessageCommandEvent(connection, "Before we create the poll, you can add some tags to find your poll.\n Just enter the tags as you did with the answers\ntype `done`, if you want us to publish the poll"));
                         typingPollContent = false;
                         addingTags = true;
                     }
@@ -169,7 +169,7 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                         addingTags = false;
                         try {
                             pollId = StrawpollAPI.create(poll.getTitle(), poll.getAnswers());
-                            logger.info("" + pollId);
+                            logger.info("Created Poll ID:" + pollId);
                         } catch (Exception e) {
                             logger.error(e.getMessage());
                             bus.publish(new ConnectionMessageCommandEvent(connection, "An error occurred while creating the poll...\nPlease try again later"));
@@ -181,7 +181,6 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                         bus.publish(new CreateAtomFromPollEvent(poll));
                         poll = new Poll();
                     }
-
                 }));
         // activate TextMessageCommandBehaviour
         textMessageCommandBehaviour = new TextMessageCommandBehaviour(ctx,
@@ -203,7 +202,6 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                 } else if (poll.getTitle() != null && addingTags && !text.equals("end") && !text.equals("done")) {
                         if(!poll.getTags().contains(text))poll.addTags(text);
                 }
-
                 //bus.publish(new ConnectionMessageCommandEvent(msgEvent.getCon(), text));
             }
         });

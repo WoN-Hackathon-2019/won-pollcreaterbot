@@ -12,6 +12,7 @@ public class Poll {
     public Poll(){
         answers = new ArrayList<>();
         tags = new ArrayList<>();
+        tags.add("PollAtom");
     }
 
     public String getTitle() {
